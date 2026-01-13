@@ -10,13 +10,13 @@
     .wrap { padding:14px; max-width:720px; margin:0 auto; }
     .btn { width:100%; padding:10px 12px; border-radius:12px; border:1px solid #2a2a45; background:#10162f; color:#fff; font-weight:800; }
     .btn:active{ transform:scale(.99); }
-    .panel { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:12px; }
+    .panel { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
     .card { background:transparent; border:none; border-radius:16px; padding:8px 4px; }
-    .title { font-weight:700; opacity:.9; margin-bottom:8px; display:flex; justify-content:center; gap:10px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
-    .rows { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px 12px; }
-    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 12px; background:#050506; border-radius:14px; }
-    .k { opacity:.75; font-size:11px; flex:0 0 120px; white-space:nowrap; }
-    .v { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; text-align:right; flex:1; }
+    .title { font-weight:700; opacity:.9; margin-bottom:8px; display:flex; justify-content:center; gap:10px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; text-shadow:0 1px 4px rgba(0,0,0,.6); }
+    .rows { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 12px; background:#000000; border-radius:999px; margin:2px 0; white-space:nowrap; }
+    .k { color:#aeb4c8; font-size:11px; flex:0 0 120px; white-space:nowrap; }
+    .v { color:#ffffff; font-weight:700; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; text-align:right; flex:1; white-space:nowrap; }
     .hidden { display:none !important; }
   </style>
 </head>
@@ -33,8 +33,9 @@
           <div class="row"><div class="k">Altitude (m)</div><div class="v" id="alt">—</div></div>
           <div class="row"><div class="k">Acc H (m)</div><div class="v" id="hacc">—</div></div>
           <div class="row"><div class="k">AltAcc (m)</div><div class="v" id="vacc">—</div></div>
+          <div class="row"><div class="k">Qualidade sinal</div><div class="v" id="sigQ">—</div></div>
           <div class="row"><div class="k">Bearing (°)</div><div class="v" id="bearing">—</div></div>
-          <div class="row"><div class="k">Course (°)</div><div class="v" id="course">—</div></div>
+          <div class="row"><div class="k">Fonte rumo</div><div class="v" id="bearingSrc">—</div></div>
           <div class="row"><div class="k">Speed (km/h)</div><div class="v" id="spd">—</div></div>
           <div class="row"><div class="k">Timestamp</div><div class="v" id="ts">—</div></div>
         </div>
@@ -43,12 +44,15 @@
       <div class="card" data-section="telemetry">
         <div class="title"><span>Telemetria</span></div>
         <div class="rows">
-          <div class="row"><div class="k">Δt último fix (ms)</div><div class="v" id="dt">—</div></div>
-          <div class="row"><div class="k">Tempo desde update (s)</div><div class="v" id="age">—</div></div>
+          <div class="row"><div class="k">Δt GPS (ms)</div><div class="v" id="dtGps">—</div></div>
+          <div class="row"><div class="k">Update (s)</div><div class="v" id="updateAge">—</div></div>
           <div class="row"><div class="k">Dist. entre updates (m)</div><div class="v" id="dLast">—</div></div>
           <div class="row"><div class="k">Distância total (m)</div><div class="v" id="dTot">—</div></div>
           <div class="row"><div class="k">Vel. média</div><div class="v" id="vAvg">—</div></div>
           <div class="row"><div class="k">Vel. máx (km/h)</div><div class="v" id="vMax">—</div></div>
+          <div class="row"><div class="k">Δ Altitude (m)</div><div class="v" id="dAlt">—</div></div>
+          <div class="row"><div class="k">Vel. vertical (m/s)</div><div class="v" id="vVert">—</div></div>
+          <div class="row"><div class="k">Ritmo (min/km)</div><div class="v" id="pace">—</div></div>
         </div>
       </div>
 
@@ -72,6 +76,7 @@
           <div class="row"><div class="k">acc+g x</div><div class="v" id="agx">—</div></div>
           <div class="row"><div class="k">acc+g y</div><div class="v" id="agy">—</div></div>
           <div class="row"><div class="k">acc+g z</div><div class="v" id="agz">—</div></div>
+          <div class="row"><div class="k">G-Force (g)</div><div class="v" id="gforce">—</div></div>
         </div>
       </div>
     </div>
@@ -86,6 +91,22 @@
 
   function isEmptyValue(val){
     return val == null || val === "" || val === "—";
+  }
+
+  function formatPace(speedMs){
+    if (typeof speedMs !== "number" || !isFinite(speedMs) || speedMs <= 0) return null;
+    const totalSeconds = 1000 / speedMs;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.round(totalSeconds % 60);
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  function signalQualityFromAccuracy(acc){
+    if (typeof acc !== "number" || !isFinite(acc)) return null;
+    if (acc <= 10) return "Excelente";
+    if (acc <= 30) return "Boa";
+    if (acc <= 100) return "Ruim";
+    return "Péssima";
   }
 
   function updateSectionVisibility(card){
@@ -143,16 +164,19 @@
       setField("alt", fmt1(c.altitude));
       setField("hacc", fmt0(c.accuracy));
       setField("vacc", fmt0(c.altitudeAccuracy));
+      setField("sigQ", signalQualityFromAccuracy(c.accuracy));
 
       const spd = (c.speed == null || c.speed < 0) ? null : c.speed * 3.6;
       setField("spd", spd == null ? null : fmt1(spd));
       if (spd != null) vmax = Math.max(vmax, spd);
       setField("vMax", fmt1(vmax));
 
-      const course = (c.heading == null || c.heading < 0) ? null : c.heading;
-      setField("course", course == null ? null : fmt0(course));
-      const bearing = course != null ? course : lastCompassHeading;
+      const gpsHeading = (c.heading == null || c.heading < 0) ? null : c.heading;
+      const compassHeading = (typeof lastCompassHeading === "number") ? lastCompassHeading : null;
+      const bearing = gpsHeading != null ? gpsHeading : compassHeading;
       setField("bearing", bearing == null ? null : fmt0(bearing));
+      const bearingSource = gpsHeading != null ? "GPS" : (compassHeading != null ? "Bússola" : null);
+      setField("bearingSrc", bearingSource);
 
       const ts = new Date(pos.timestamp);
       setField("ts", ts.toLocaleTimeString());
@@ -160,16 +184,25 @@
       // dt + hz
       if (lastPos){
         const dt = pos.timestamp - lastPos.timestamp;
-        setField("dt", dt > 0 ? fmt0(dt) : null);
+        setField("dtGps", dt > 0 ? fmt0(dt) : null);
 
         const d = haversine(lastPos.coords.latitude, lastPos.coords.longitude, c.latitude, c.longitude);
         setField("dLast", fmt1(d));
         distTotal += d;
         setField("dTot", fmt1(distTotal));
+
+        const lastAlt = lastPos.coords.altitude;
+        const deltaAlt = (typeof c.altitude === "number" && typeof lastAlt === "number") ? (c.altitude - lastAlt) : null;
+        setField("dAlt", deltaAlt == null ? null : fmt1(deltaAlt));
+        const dtSec = dt / 1000;
+        const vVert = (deltaAlt == null || !dtSec || dtSec <= 0) ? null : (deltaAlt / dtSec);
+        setField("vVert", vVert == null ? null : fmt1(vVert));
       } else {
-        setField("dt", null);
+        setField("dtGps", null);
         setField("dLast", null);
         setField("dTot", fmt1(distTotal));
+        setField("dAlt", null);
+        setField("vVert", null);
       }
 
       // avg speed since first fix (by distance/time)
@@ -182,6 +215,8 @@
         setField("vAvg", null);
       }
 
+      setField("pace", formatPace(c.speed));
+
       lastPos = pos;
 
     }, (err)=>{
@@ -191,8 +226,8 @@
 
   // update age
   setInterval(()=>{
-    if (!lastPos) { setField("age", null); return; }
-    setField("age", fmt1((Date.now() - lastPos.timestamp)/1000));
+    if (!lastPos) { setField("updateAge", null); return; }
+    setField("updateAge", fmt1((Date.now() - lastPos.timestamp)/1000));
   }, 200);
 
   // ---------- ORIENTATION ----------
@@ -238,6 +273,10 @@
         setField("agx", ag.x == null ? null : fmt1(ag.x));
         setField("agy", ag.y == null ? null : fmt1(ag.y));
         setField("agz", ag.z == null ? null : fmt1(ag.z));
+        const gMag = (typeof ag.x === "number" && typeof ag.y === "number" && typeof ag.z === "number")
+          ? Math.sqrt((ag.x ** 2) + (ag.y ** 2) + (ag.z ** 2)) / 9.81
+          : null;
+        setField("gforce", gMag == null ? null : fmt1(gMag));
 
         setField("ra", r.alpha == null ? null : fmt1(r.alpha));
         setField("rb", r.beta == null ? null : fmt1(r.beta));
