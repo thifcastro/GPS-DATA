@@ -8,6 +8,10 @@
     :root { color-scheme: dark; }
     body { margin:0; background:linear-gradient(180deg,#1d3b8f 0%, #0f1d4f 70%, #0b0b10 100%); color:#e9e9ef; font-family:-apple-system,system-ui,Segoe UI,Arial; }
     .wrap { padding:14px; max-width:720px; margin:0 auto; }
+    .topbar { display:flex; gap:10px; align-items:center; justify-content:space-between; margin-bottom:12px; }
+    .lang-switch { display:flex; gap:6px; }
+    .lang-btn { padding:6px 10px; border-radius:999px; border:1px solid #2a2a45; background:#0f1530; color:#dfe4ff; font-weight:700; font-size:12px; cursor:pointer; }
+    .lang-btn.active { background:#1b2a6b; border-color:#4b5aa8; }
     .btn { width:100%; padding:10px 12px; border-radius:12px; border:1px solid #2a2a45; background:#10162f; color:#fff; font-weight:800; }
     .btn:active{ transform:scale(.99); }
     .panel { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
@@ -15,68 +19,297 @@
     .title { font-weight:700; opacity:.9; margin-bottom:8px; display:flex; justify-content:center; gap:10px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; text-shadow:0 1px 4px rgba(0,0,0,.6); }
     .rows { display:grid; grid-template-columns:1fr; gap:8px; }
     .row { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:8px 12px; background:#000000; border-radius:16px; margin:2px 0; }
-    .k { color:#aeb4c8; font-size:11px; width:100%; }
+    .k { color:#aeb4c8; font-size:11px; width:100%; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .label { flex:1; }
+    .info-btn { border:none; background:transparent; color:#aeb4c8; font-size:12px; cursor:pointer; padding:2px; }
+    .info-btn:focus { outline:2px solid #4b5aa8; border-radius:6px; }
+    .desc { font-size:11px; color:#cbd1e6; line-height:1.3; display:none; }
+    .desc.open { display:block; }
     .v { color:#ffffff; font-weight:700; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; text-align:right; width:100%; }
     .hidden { display:none !important; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <button class="btn" id="startBtn">Iniciar (pedir permissões)</button>
+    <div class="topbar">
+      <div class="lang-switch" role="tablist" aria-label="Language">
+        <button class="lang-btn active" type="button" data-lang="pt">PT</button>
+        <button class="lang-btn" type="button" data-lang="en">EN</button>
+        <button class="lang-btn" type="button" data-lang="es">ES</button>
+      </div>
+      <button class="btn" id="startBtn" data-i18n="start_btn">Iniciar (pedir permissões)</button>
+    </div>
 
     <div class="panel">
       <div class="card" data-section="gps">
-        <div class="title"><span>GPS / Fix</span></div>
+        <div class="title"><span data-i18n="section_gps">GPS / Fix</span></div>
         <div class="rows">
-          <div class="row"><div class="k">Latitude</div><div class="v" id="lat">—</div></div>
-          <div class="row"><div class="k">Longitude</div><div class="v" id="lon">—</div></div>
-          <div class="row"><div class="k">Altitude (m)</div><div class="v" id="alt">—</div></div>
-          <div class="row"><div class="k">Acc H (m)</div><div class="v" id="hacc">—</div></div>
-          <div class="row"><div class="k">AltAcc (m)</div><div class="v" id="vacc">—</div></div>
-          <div class="row"><div class="k">Qualidade sinal</div><div class="v" id="sigQ">—</div></div>
-          <div class="row"><div class="k">Bearing (°)</div><div class="v" id="bearing">—</div></div>
-          <div class="row"><div class="k">Fonte rumo</div><div class="v" id="bearingSrc">—</div></div>
-          <div class="row"><div class="k">Speed (km/h)</div><div class="v" id="spd">—</div></div>
-          <div class="row"><div class="k">Timestamp</div><div class="v" id="ts">—</div></div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_lat">Latitude</span>
+              <button class="info-btn" type="button" data-info-for="lat">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_lat"></div>
+            <div class="v" id="lat">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_lon">Longitude</span>
+              <button class="info-btn" type="button" data-info-for="lon">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_lon"></div>
+            <div class="v" id="lon">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_alt">Altitude (m)</span>
+              <button class="info-btn" type="button" data-info-for="alt">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_alt"></div>
+            <div class="v" id="alt">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_hacc">Acc H (m)</span>
+              <button class="info-btn" type="button" data-info-for="hacc">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_hacc"></div>
+            <div class="v" id="hacc">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_vacc">AltAcc (m)</span>
+              <button class="info-btn" type="button" data-info-for="vacc">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_vacc"></div>
+            <div class="v" id="vacc">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_sigq">Qualidade sinal</span>
+              <button class="info-btn" type="button" data-info-for="sigQ">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_sigq"></div>
+            <div class="v" id="sigQ">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_bearing">Bearing (°)</span>
+              <button class="info-btn" type="button" data-info-for="bearing">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_bearing"></div>
+            <div class="v" id="bearing">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_bearing_src">Fonte rumo</span>
+              <button class="info-btn" type="button" data-info-for="bearingSrc">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_bearing_src"></div>
+            <div class="v" id="bearingSrc">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_speed">Speed (km/h)</span>
+              <button class="info-btn" type="button" data-info-for="spd">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_speed"></div>
+            <div class="v" id="spd">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_ts">Timestamp</span>
+              <button class="info-btn" type="button" data-info-for="ts">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_ts"></div>
+            <div class="v" id="ts">—</div>
+          </div>
         </div>
       </div>
 
       <div class="card" data-section="telemetry">
-        <div class="title"><span>Telemetria</span></div>
+        <div class="title"><span data-i18n="section_telemetry">Telemetria</span></div>
         <div class="rows">
-          <div class="row"><div class="k">Δt GPS (ms)</div><div class="v" id="dtGps">—</div></div>
-          <div class="row"><div class="k">Update (s)</div><div class="v" id="updateAge">—</div></div>
-          <div class="row"><div class="k">Dist. entre updates (m)</div><div class="v" id="dLast">—</div></div>
-          <div class="row"><div class="k">Distância total (m)</div><div class="v" id="dTot">—</div></div>
-          <div class="row"><div class="k">Vel. média</div><div class="v" id="vAvg">—</div></div>
-          <div class="row"><div class="k">Vel. máx (km/h)</div><div class="v" id="vMax">—</div></div>
-          <div class="row"><div class="k">Δ Altitude (m)</div><div class="v" id="dAlt">—</div></div>
-          <div class="row"><div class="k">Vel. vertical (m/s)</div><div class="v" id="vVert">—</div></div>
-          <div class="row"><div class="k">Ritmo (min/km)</div><div class="v" id="pace">—</div></div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_dtGps">Δt GPS (ms)</span>
+              <button class="info-btn" type="button" data-info-for="dtGps">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_dtGps"></div>
+            <div class="v" id="dtGps">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_updateAge">Update (s)</span>
+              <button class="info-btn" type="button" data-info-for="updateAge">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_updateAge"></div>
+            <div class="v" id="updateAge">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_dLast">Dist. entre updates (m)</span>
+              <button class="info-btn" type="button" data-info-for="dLast">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_dLast"></div>
+            <div class="v" id="dLast">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_dTot">Distância total (m)</span>
+              <button class="info-btn" type="button" data-info-for="dTot">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_dTot"></div>
+            <div class="v" id="dTot">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_vAvg">Vel. média</span>
+              <button class="info-btn" type="button" data-info-for="vAvg">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_vAvg"></div>
+            <div class="v" id="vAvg">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_vMax">Vel. máx (km/h)</span>
+              <button class="info-btn" type="button" data-info-for="vMax">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_vMax"></div>
+            <div class="v" id="vMax">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_dAlt">Δ Altitude (m)</span>
+              <button class="info-btn" type="button" data-info-for="dAlt">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_dAlt"></div>
+            <div class="v" id="dAlt">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_vVert">Vel. vertical (m/s)</span>
+              <button class="info-btn" type="button" data-info-for="vVert">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_vVert"></div>
+            <div class="v" id="vVert">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_pace">Ritmo (min/km)</span>
+              <button class="info-btn" type="button" data-info-for="pace">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_pace"></div>
+            <div class="v" id="pace">—</div>
+          </div>
         </div>
       </div>
 
       <div class="card" data-section="orientation">
-        <div class="title"><span>Orientação</span></div>
+        <div class="title"><span data-i18n="section_orientation">Orientação</span></div>
         <div class="rows">
-          <div class="row"><div class="k">rot alpha</div><div class="v" id="ra">—</div></div>
-          <div class="row"><div class="k">rot beta</div><div class="v" id="rb">—</div></div>
-          <div class="row"><div class="k">rot gamma</div><div class="v" id="rg">—</div></div>
-          <div class="row"><div class="k">compassHeading (°)</div><div class="v" id="cHead">—</div></div>
-          <div class="row"><div class="k">compassAccuracy (°)</div><div class="v" id="cAcc">—</div></div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_ra">rot alpha</span>
+              <button class="info-btn" type="button" data-info-for="ra">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_ra"></div>
+            <div class="v" id="ra">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_rb">rot beta</span>
+              <button class="info-btn" type="button" data-info-for="rb">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_rb"></div>
+            <div class="v" id="rb">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_rg">rot gamma</span>
+              <button class="info-btn" type="button" data-info-for="rg">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_rg"></div>
+            <div class="v" id="rg">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_cHead">compassHeading (°)</span>
+              <button class="info-btn" type="button" data-info-for="cHead">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_cHead"></div>
+            <div class="v" id="cHead">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_cAcc">compassAccuracy (°)</span>
+              <button class="info-btn" type="button" data-info-for="cAcc">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_cAcc"></div>
+            <div class="v" id="cAcc">—</div>
+          </div>
         </div>
       </div>
 
       <div class="card" data-section="motion">
-        <div class="title"><span>Movimento</span></div>
+        <div class="title"><span data-i18n="section_motion">Movimento</span></div>
         <div class="rows">
-          <div class="row"><div class="k">acc x</div><div class="v" id="ax">—</div></div>
-          <div class="row"><div class="k">acc y</div><div class="v" id="ay">—</div></div>
-          <div class="row"><div class="k">acc z</div><div class="v" id="az">—</div></div>
-          <div class="row"><div class="k">acc+g x</div><div class="v" id="agx">—</div></div>
-          <div class="row"><div class="k">acc+g y</div><div class="v" id="agy">—</div></div>
-          <div class="row"><div class="k">acc+g z</div><div class="v" id="agz">—</div></div>
-          <div class="row"><div class="k">G-Force (g)</div><div class="v" id="gforce">—</div></div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_ax">acc x</span>
+              <button class="info-btn" type="button" data-info-for="ax">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_ax"></div>
+            <div class="v" id="ax">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_ay">acc y</span>
+              <button class="info-btn" type="button" data-info-for="ay">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_ay"></div>
+            <div class="v" id="ay">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_az">acc z</span>
+              <button class="info-btn" type="button" data-info-for="az">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_az"></div>
+            <div class="v" id="az">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_agx">acc+g x</span>
+              <button class="info-btn" type="button" data-info-for="agx">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_agx"></div>
+            <div class="v" id="agx">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_agy">acc+g y</span>
+              <button class="info-btn" type="button" data-info-for="agy">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_agy"></div>
+            <div class="v" id="agy">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_agz">acc+g z</span>
+              <button class="info-btn" type="button" data-info-for="agz">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_agz"></div>
+            <div class="v" id="agz">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_gforce">G-Force (g)</span>
+              <button class="info-btn" type="button" data-info-for="gforce">ℹ️</button>
+            </div>
+            <div class="desc" data-i18n="desc_gforce"></div>
+            <div class="v" id="gforce">—</div>
+          </div>
         </div>
       </div>
     </div>
@@ -88,6 +321,262 @@
   function fmt(n, d=6) { return (typeof n === "number" && isFinite(n)) ? n.toFixed(d) : null; }
   function fmt1(n) { return (typeof n === "number" && isFinite(n)) ? n.toFixed(1) : null; }
   function fmt0(n) { return (typeof n === "number" && isFinite(n)) ? String(Math.round(n)) : null; }
+
+  const translations = {
+    pt: {
+      start_btn: "Iniciar (pedir permissões)",
+      section_gps: "GPS / Fix",
+      section_telemetry: "Telemetria",
+      section_orientation: "Orientação",
+      section_motion: "Movimento",
+      label_lat: "Latitude",
+      label_lon: "Longitude",
+      label_alt: "Altitude (m)",
+      label_hacc: "Acc H (m)",
+      label_vacc: "AltAcc (m)",
+      label_sigq: "Qualidade sinal",
+      label_bearing: "Rumo (°)",
+      label_bearing_src: "Fonte do rumo",
+      label_speed: "Velocidade (km/h)",
+      label_ts: "Timestamp",
+      label_dtGps: "Δt GPS (ms)",
+      label_updateAge: "Atualização (s)",
+      label_dLast: "Dist. entre updates (m)",
+      label_dTot: "Distância total (m)",
+      label_vAvg: "Vel. média",
+      label_vMax: "Vel. máx (km/h)",
+      label_dAlt: "Δ Altitude (m)",
+      label_vVert: "Vel. vertical (m/s)",
+      label_pace: "Ritmo (min/km)",
+      label_ra: "rot alpha",
+      label_rb: "rot beta",
+      label_rg: "rot gamma",
+      label_cHead: "compassHeading (°)",
+      label_cAcc: "compassAccuracy (°)",
+      label_ax: "acc x",
+      label_ay: "acc y",
+      label_az: "acc z",
+      label_agx: "acc+g x",
+      label_agy: "acc+g y",
+      label_agz: "acc+g z",
+      label_gforce: "G-Force (g)",
+      desc_lat: "Latitude em graus decimais (N/S).",
+      desc_lon: "Longitude em graus decimais (L/O).",
+      desc_alt: "Altitude estimada pelo GPS acima do nível do mar.",
+      desc_hacc: "Precisão horizontal estimada do GPS (menor é melhor).",
+      desc_vacc: "Precisão vertical/altitude estimada do GPS.",
+      desc_sigq: "Classificação simples da qualidade do sinal GPS.",
+      desc_bearing: "Direção de deslocamento em graus (0° = Norte).",
+      desc_bearing_src: "Origem do rumo: GPS ou bússola.",
+      desc_speed: "Velocidade atual estimada (km/h).",
+      desc_ts: "Hora do último fix de GPS.",
+      desc_dtGps: "Tempo entre o fix atual e o anterior (ms).",
+      desc_updateAge: "Quanto tempo desde o último fix (s).",
+      desc_dLast: "Distância percorrida desde o último fix (m).",
+      desc_dTot: "Distância total acumulada desde o início (m).",
+      desc_vAvg: "Velocidade média desde o primeiro fix (km/h).",
+      desc_vMax: "Maior velocidade registrada (km/h).",
+      desc_dAlt: "Variação de altitude entre dois fixes (m).",
+      desc_vVert: "Velocidade vertical estimada (m/s).",
+      desc_pace: "Ritmo estimado por km (min/km).",
+      desc_ra: "Rotação do dispositivo no eixo Z (alpha).",
+      desc_rb: "Rotação do dispositivo no eixo X (beta).",
+      desc_rg: "Rotação do dispositivo no eixo Y (gamma).",
+      desc_cHead: "Rumo de bússola do dispositivo em graus.",
+      desc_cAcc: "Precisão da bússola em graus.",
+      desc_ax: "Aceleração sem gravidade no eixo X (m/s²).",
+      desc_ay: "Aceleração sem gravidade no eixo Y (m/s²).",
+      desc_az: "Aceleração sem gravidade no eixo Z (m/s²).",
+      desc_agx: "Aceleração com gravidade no eixo X (m/s²).",
+      desc_agy: "Aceleração com gravidade no eixo Y (m/s²).",
+      desc_agz: "Aceleração com gravidade no eixo Z (m/s²).",
+      desc_gforce: "Magnitude da aceleração em unidades de G.",
+      info_label: "Mostrar explicação",
+      sig_excellent: "Excelente",
+      sig_good: "Boa",
+      sig_bad: "Ruim",
+      sig_poor: "Péssima",
+      bearing_gps: "GPS",
+      bearing_compass: "Bússola",
+    },
+    en: {
+      start_btn: "Start (request permissions)",
+      section_gps: "GPS / Fix",
+      section_telemetry: "Telemetry",
+      section_orientation: "Orientation",
+      section_motion: "Motion",
+      label_lat: "Latitude",
+      label_lon: "Longitude",
+      label_alt: "Altitude (m)",
+      label_hacc: "H Acc (m)",
+      label_vacc: "Alt Acc (m)",
+      label_sigq: "Signal quality",
+      label_bearing: "Bearing (°)",
+      label_bearing_src: "Bearing source",
+      label_speed: "Speed (km/h)",
+      label_ts: "Timestamp",
+      label_dtGps: "Δt GPS (ms)",
+      label_updateAge: "Update age (s)",
+      label_dLast: "Distance between updates (m)",
+      label_dTot: "Total distance (m)",
+      label_vAvg: "Avg. speed",
+      label_vMax: "Max speed (km/h)",
+      label_dAlt: "Δ Altitude (m)",
+      label_vVert: "Vertical speed (m/s)",
+      label_pace: "Pace (min/km)",
+      label_ra: "rot alpha",
+      label_rb: "rot beta",
+      label_rg: "rot gamma",
+      label_cHead: "compassHeading (°)",
+      label_cAcc: "compassAccuracy (°)",
+      label_ax: "acc x",
+      label_ay: "acc y",
+      label_az: "acc z",
+      label_agx: "acc+g x",
+      label_agy: "acc+g y",
+      label_agz: "acc+g z",
+      label_gforce: "G-Force (g)",
+      desc_lat: "Latitude in decimal degrees (N/S).",
+      desc_lon: "Longitude in decimal degrees (E/W).",
+      desc_alt: "GPS-estimated altitude above sea level.",
+      desc_hacc: "Estimated horizontal accuracy (lower is better).",
+      desc_vacc: "Estimated vertical/altitude accuracy.",
+      desc_sigq: "Simple rating for GPS signal quality.",
+      desc_bearing: "Direction of travel in degrees (0° = North).",
+      desc_bearing_src: "Bearing source: GPS or compass.",
+      desc_speed: "Estimated current speed (km/h).",
+      desc_ts: "Time of the last GPS fix.",
+      desc_dtGps: "Time between the current and previous fix (ms).",
+      desc_updateAge: "How long since the last fix (s).",
+      desc_dLast: "Distance traveled since the last fix (m).",
+      desc_dTot: "Total accumulated distance since start (m).",
+      desc_vAvg: "Average speed since first fix (km/h).",
+      desc_vMax: "Highest recorded speed (km/h).",
+      desc_dAlt: "Altitude change between two fixes (m).",
+      desc_vVert: "Estimated vertical speed (m/s).",
+      desc_pace: "Estimated pace per kilometer (min/km).",
+      desc_ra: "Device rotation around Z axis (alpha).",
+      desc_rb: "Device rotation around X axis (beta).",
+      desc_rg: "Device rotation around Y axis (gamma).",
+      desc_cHead: "Device compass heading in degrees.",
+      desc_cAcc: "Compass accuracy in degrees.",
+      desc_ax: "Acceleration without gravity on X axis (m/s²).",
+      desc_ay: "Acceleration without gravity on Y axis (m/s²).",
+      desc_az: "Acceleration without gravity on Z axis (m/s²).",
+      desc_agx: "Acceleration including gravity on X axis (m/s²).",
+      desc_agy: "Acceleration including gravity on Y axis (m/s²).",
+      desc_agz: "Acceleration including gravity on Z axis (m/s²).",
+      desc_gforce: "Acceleration magnitude in G units.",
+      info_label: "Show explanation",
+      sig_excellent: "Excellent",
+      sig_good: "Good",
+      sig_bad: "Poor",
+      sig_poor: "Very poor",
+      bearing_gps: "GPS",
+      bearing_compass: "Compass",
+    },
+    es: {
+      start_btn: "Iniciar (pedir permisos)",
+      section_gps: "GPS / Fix",
+      section_telemetry: "Telemetría",
+      section_orientation: "Orientación",
+      section_motion: "Movimiento",
+      label_lat: "Latitud",
+      label_lon: "Longitud",
+      label_alt: "Altitud (m)",
+      label_hacc: "Acc H (m)",
+      label_vacc: "Acc Alt (m)",
+      label_sigq: "Calidad de señal",
+      label_bearing: "Rumbo (°)",
+      label_bearing_src: "Fuente del rumbo",
+      label_speed: "Velocidad (km/h)",
+      label_ts: "Timestamp",
+      label_dtGps: "Δt GPS (ms)",
+      label_updateAge: "Actualización (s)",
+      label_dLast: "Dist. entre actualizaciones (m)",
+      label_dTot: "Distancia total (m)",
+      label_vAvg: "Vel. media",
+      label_vMax: "Vel. máx (km/h)",
+      label_dAlt: "Δ Altitud (m)",
+      label_vVert: "Vel. vertical (m/s)",
+      label_pace: "Ritmo (min/km)",
+      label_ra: "rot alpha",
+      label_rb: "rot beta",
+      label_rg: "rot gamma",
+      label_cHead: "compassHeading (°)",
+      label_cAcc: "compassAccuracy (°)",
+      label_ax: "acc x",
+      label_ay: "acc y",
+      label_az: "acc z",
+      label_agx: "acc+g x",
+      label_agy: "acc+g y",
+      label_agz: "acc+g z",
+      label_gforce: "G-Force (g)",
+      desc_lat: "Latitud en grados decimales (N/S).",
+      desc_lon: "Longitud en grados decimales (E/O).",
+      desc_alt: "Altitud estimada por GPS sobre el nivel del mar.",
+      desc_hacc: "Precisión horizontal estimada (menor es mejor).",
+      desc_vacc: "Precisión vertical/altitud estimada.",
+      desc_sigq: "Calificación simple de la señal GPS.",
+      desc_bearing: "Dirección de desplazamiento en grados (0° = Norte).",
+      desc_bearing_src: "Fuente del rumbo: GPS o brújula.",
+      desc_speed: "Velocidad actual estimada (km/h).",
+      desc_ts: "Hora del último fix de GPS.",
+      desc_dtGps: "Tiempo entre el fix actual y el anterior (ms).",
+      desc_updateAge: "Tiempo desde el último fix (s).",
+      desc_dLast: "Distancia recorrida desde el último fix (m).",
+      desc_dTot: "Distancia total acumulada desde el inicio (m).",
+      desc_vAvg: "Velocidad media desde el primer fix (km/h).",
+      desc_vMax: "Mayor velocidad registrada (km/h).",
+      desc_dAlt: "Cambio de altitud entre fixes (m).",
+      desc_vVert: "Velocidad vertical estimada (m/s).",
+      desc_pace: "Ritmo estimado por kilómetro (min/km).",
+      desc_ra: "Rotación del dispositivo en el eje Z (alpha).",
+      desc_rb: "Rotación del dispositivo en el eje X (beta).",
+      desc_rg: "Rotación del dispositivo en el eje Y (gamma).",
+      desc_cHead: "Rumbo de la brújula del dispositivo en grados.",
+      desc_cAcc: "Precisión de la brújula en grados.",
+      desc_ax: "Aceleración sin gravedad en el eje X (m/s²).",
+      desc_ay: "Aceleración sin gravedad en el eje Y (m/s²).",
+      desc_az: "Aceleración sin gravedad en el eje Z (m/s²).",
+      desc_agx: "Aceleración con gravedad en el eje X (m/s²).",
+      desc_agy: "Aceleración con gravedad en el eje Y (m/s²).",
+      desc_agz: "Aceleración con gravedad en el eje Z (m/s²).",
+      desc_gforce: "Magnitud de la aceleración en unidades G.",
+      info_label: "Mostrar explicación",
+      sig_excellent: "Excelente",
+      sig_good: "Buena",
+      sig_bad: "Mala",
+      sig_poor: "Muy mala",
+      bearing_gps: "GPS",
+      bearing_compass: "Brújula",
+    },
+  };
+
+  const localeMap = { pt: "pt-BR", en: "en-US", es: "es-ES" };
+  let currentLang = "pt";
+
+  function t(key) {
+    return translations[currentLang]?.[key] ?? translations.pt[key] ?? key;
+  }
+
+  function applyTranslations() {
+    document.documentElement.lang = currentLang === "pt" ? "pt-br" : currentLang;
+    document.querySelectorAll("[data-i18n]").forEach((el) => {
+      const key = el.dataset.i18n;
+      const text = t(key);
+      if (text) el.textContent = text;
+    });
+
+    document.querySelectorAll(".info-btn").forEach((btn) => {
+      const label = t("info_label");
+      btn.setAttribute("aria-label", label);
+      btn.setAttribute("title", label);
+      if (!btn.hasAttribute("aria-expanded")) {
+        btn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
 
   function isEmptyValue(val){
     return val == null || val === "" || val === "—";
@@ -103,10 +592,10 @@
 
   function signalQualityFromAccuracy(acc){
     if (typeof acc !== "number" || !isFinite(acc)) return null;
-    if (acc <= 10) return "Excelente";
-    if (acc <= 30) return "Boa";
-    if (acc <= 100) return "Ruim";
-    return "Péssima";
+    if (acc <= 10) return t("sig_excellent");
+    if (acc <= 30) return t("sig_good");
+    if (acc <= 100) return t("sig_bad");
+    return t("sig_poor");
   }
 
   function updateSectionVisibility(card){
@@ -114,6 +603,18 @@
     const rows = Array.from(card.querySelectorAll(".row"));
     const hasVisible = rows.some((row) => !row.classList.contains("hidden"));
     card.classList.toggle("hidden", !hasVisible);
+  }
+
+  function refreshLocalizedFields(){
+    if (!lastPos) return;
+    const c = lastPos.coords;
+    setField("sigQ", signalQualityFromAccuracy(c.accuracy));
+    const gpsHeading = (c.heading == null || c.heading < 0) ? null : c.heading;
+    const compassHeading = (typeof lastCompassHeading === "number") ? lastCompassHeading : null;
+    const bearingSource = gpsHeading != null ? t("bearing_gps") : (compassHeading != null ? t("bearing_compass") : null);
+    setField("bearingSrc", bearingSource);
+    const ts = new Date(lastPos.timestamp);
+    setField("ts", ts.toLocaleTimeString(localeMap[currentLang] || "pt-BR"));
   }
 
   function setField(id, value){
@@ -175,11 +676,11 @@
       const compassHeading = (typeof lastCompassHeading === "number") ? lastCompassHeading : null;
       const bearing = gpsHeading != null ? gpsHeading : compassHeading;
       setField("bearing", bearing == null ? null : fmt0(bearing));
-      const bearingSource = gpsHeading != null ? "GPS" : (compassHeading != null ? "Bússola" : null);
+      const bearingSource = gpsHeading != null ? t("bearing_gps") : (compassHeading != null ? t("bearing_compass") : null);
       setField("bearingSrc", bearingSource);
 
       const ts = new Date(pos.timestamp);
-      setField("ts", ts.toLocaleTimeString());
+      setField("ts", ts.toLocaleTimeString(localeMap[currentLang] || "pt-BR"));
 
       // dt + hz
       if (lastPos){
@@ -294,6 +795,32 @@
     await startOrientation();
     await startMotion();
   });
+
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const lang = btn.dataset.lang;
+      if (!lang || lang === currentLang) return;
+      currentLang = lang;
+      document.querySelectorAll(".lang-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.lang === currentLang);
+      });
+      applyTranslations();
+      refreshLocalizedFields();
+    });
+  });
+
+  document.querySelectorAll(".info-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const row = btn.closest(".row");
+      if (!row) return;
+      const desc = row.querySelector(".desc");
+      if (!desc) return;
+      const isOpen = desc.classList.toggle("open");
+      btn.setAttribute("aria-expanded", String(isOpen));
+    });
+  });
+
+  applyTranslations();
 
   document.querySelectorAll(".row").forEach((row)=>{
     const value = row.querySelector(".v");
