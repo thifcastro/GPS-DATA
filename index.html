@@ -17,6 +17,14 @@
     .btn[disabled] { opacity:.5; cursor:not-allowed; }
     .panel { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
     .card { background:transparent; border:none; border-radius:16px; padding:8px 4px; }
+    .permission-card { position:sticky; top:8px; z-index:20; background:rgba(84, 20, 20, 0.55); border:1px solid rgba(255, 120, 120, 0.45); border-radius:16px; padding:12px; backdrop-filter:blur(6px); box-shadow:0 8px 18px rgba(0,0,0,.35); }
+    .permission-title { justify-content:flex-start; color:#ffd6d6; text-transform:none; letter-spacing:.2px; font-size:13px; }
+    .permission-title .icon { font-size:14px; }
+    .permission-text { margin:6px 0 10px; font-size:12px; color:#f5d9d9; }
+    .permission-steps { margin:8px 0; }
+    .permission-steps ol { margin:6px 0 0 18px; padding:0; font-size:12px; color:#f2cfcf; line-height:1.4; }
+    .permission-steps li { margin:4px 0; }
+    .permission-note { margin:8px 0 0; font-size:11px; color:#f2cfcf; }
     .title { font-weight:700; opacity:.9; margin-bottom:8px; display:flex; justify-content:center; gap:10px; font-size:12px; text-transform:uppercase; letter-spacing:.6px; text-shadow:0 1px 4px rgba(0,0,0,.6); }
     .rows { display:grid; grid-template-columns:1fr; gap:8px; }
     .row { display:flex; flex-direction:column; align-items:flex-start; gap:4px; padding:8px 12px; background:#000000; border-radius:16px; margin:2px 0; }
@@ -50,6 +58,28 @@
     </div>
 
     <div class="panel">
+      <div class="card permission-card hidden" id="geoPermissionCard" role="status" aria-live="polite">
+        <div class="title permission-title">
+          <span class="icon">⚠️</span>
+          <span data-i18n="geo_perm_title">Permissão de localização negada</span>
+        </div>
+        <p class="permission-text" data-i18n="geo_perm_explain">No Android, se a localização for negada na primeira vez, o navegador não pergunta novamente automaticamente.</p>
+        <div class="permission-steps">
+          <div class="permission-text" data-i18n="geo_perm_steps_title">Chrome (Android):</div>
+          <ol>
+            <li data-i18n="geo_perm_step1">Toque no ícone 🔒 ao lado da barra de endereço</li>
+            <li data-i18n="geo_perm_step2">Vá em Permissões</li>
+            <li data-i18n="geo_perm_step3">Ative Localização</li>
+            <li data-i18n="geo_perm_step4">Recarregue a página</li>
+          </ol>
+        </div>
+        <div class="row actions">
+          <div class="btn-group">
+            <button class="btn" id="retryGeoBtn" type="button" data-i18n="btn_retry_geo">Tentar novamente</button>
+          </div>
+        </div>
+        <p class="permission-note" data-i18n="geo_perm_retry_note">Funciona apenas se o navegador ainda permitir novo prompt.</p>
+      </div>
       <div class="card" data-section="gps">
         <div class="title"><span data-i18n="section_gps">GPS / Fix</span></div>
         <div class="rows">
@@ -154,11 +184,6 @@
           <div class="row actions hidden" id="mapsRow">
             <div class="btn-group">
               <a class="btn" id="mapsLink" target="_blank" rel="noopener" data-i18n="btn_maps">Abrir no Google Maps</a>
-            </div>
-          </div>
-          <div class="row actions hidden" id="retryGeoRow">
-            <div class="btn-group">
-              <button class="btn" id="retryGeoBtn" type="button" data-i18n="btn_retry_geo">Tentar novamente</button>
             </div>
           </div>
         </div>
@@ -537,6 +562,14 @@
       btn_rec_reset: "Reset",
       btn_maps: "Abrir no Google Maps",
       btn_retry_geo: "Tentar novamente",
+      geo_perm_title: "Permissão de localização negada",
+      geo_perm_explain: "No Android, se a localização for negada na primeira vez, o navegador não pergunta novamente automaticamente.",
+      geo_perm_steps_title: "Chrome (Android):",
+      geo_perm_step1: "Toque no ícone 🔒 ao lado da barra de endereço",
+      geo_perm_step2: "Vá em Permissões",
+      geo_perm_step3: "Ative Localização",
+      geo_perm_step4: "Recarregue a página",
+      geo_perm_retry_note: "Funciona apenas se o navegador ainda permitir novo prompt.",
       gps_update_note: "A taxa de atualização do GPS é controlada pelo sistema operacional e navegador. A Web API não garante atualização fixa (ex.: 1 Hz).",
       geo_instruction: "Ative a localização nas permissões do navegador.",
       geo_status_denied: "Permissão de localização negada",
@@ -648,6 +681,14 @@
       btn_rec_reset: "Reset",
       btn_maps: "Open in Google Maps",
       btn_retry_geo: "Try again",
+      geo_perm_title: "Location permission denied",
+      geo_perm_explain: "On Android, if location is denied the first time, the browser won't prompt again automatically.",
+      geo_perm_steps_title: "Chrome (Android):",
+      geo_perm_step1: "Tap the 🔒 icon next to the address bar",
+      geo_perm_step2: "Go to Permissions",
+      geo_perm_step3: "Enable Location",
+      geo_perm_step4: "Reload the page",
+      geo_perm_retry_note: "Only works if the browser still allows a new prompt.",
       gps_update_note: "The GPS update rate is controlled by the operating system and browser. The Web API does not guarantee a fixed update rate (e.g., 1 Hz).",
       geo_instruction: "Enable location access in your browser permissions.",
       geo_status_denied: "Location permission denied",
@@ -759,6 +800,14 @@
       btn_rec_reset: "Reset",
       btn_maps: "Abrir en Google Maps",
       btn_retry_geo: "Intentar de nuevo",
+      geo_perm_title: "Permiso de ubicación denegado",
+      geo_perm_explain: "En Android, si la ubicación se niega la primera vez, el navegador no vuelve a preguntar automáticamente.",
+      geo_perm_steps_title: "Chrome (Android):",
+      geo_perm_step1: "Toque el ícono 🔒 junto a la barra de direcciones",
+      geo_perm_step2: "Vaya a Permisos",
+      geo_perm_step3: "Active Ubicación",
+      geo_perm_step4: "Recargue la página",
+      geo_perm_retry_note: "Solo funciona si el navegador aún permite un nuevo aviso.",
       gps_update_note: "La tasa de actualización del GPS la controla el sistema operativo y el navegador. La Web API no garantiza una tasa fija (ej.: 1 Hz).",
       geo_instruction: "Active la ubicación en los permisos del navegador.",
       geo_status_denied: "Permiso de ubicación denegado",
@@ -882,7 +931,7 @@
     const row = el.closest(".row");
     if (isEmptyValue(value)){
       el.textContent = "—";
-      if (row) row.classList.add("hidden");
+      if (row && !geoDeniedUI) row.classList.add("hidden");
     } else {
       el.textContent = value;
       if (row) row.classList.remove("hidden");
@@ -905,24 +954,76 @@
     updateSectionVisibility(row.closest(".card"));
   }
 
-  function setRetryGeoVisible(visible){
-    const row = $("retryGeoRow");
-    if (!row) return;
-    row.classList.toggle("hidden", !visible);
-    updateSectionVisibility(row.closest(".card"));
+  function applyGeoDeniedPlaceholders(){
+    lastPos = null;
+    distTotal = 0;
+    vmax = 0;
+    t0 = null;
+    elevationPoints = [];
+    elevationDistance = 0;
+    elevationGain = 0;
+    elevationLoss = 0;
+    elevationWindow = [];
+    lastElevationPoint = null;
+    lastElevationGrade = null;
+    [
+      "lat",
+      "latDms",
+      "lon",
+      "lonDms",
+      "alt",
+      "hacc",
+      "vacc",
+      "sigQ",
+      "bearing",
+      "bearingSrc",
+      "spd",
+      "ts",
+      "dtGps",
+      "updateAge",
+      "dLast",
+      "dTot",
+      "vAvg",
+      "vMax",
+      "dAlt",
+      "vVert",
+      "pace",
+      "recPoints",
+      "recTime",
+      "recDistance",
+      "elevGain",
+      "elevLoss",
+    ].forEach((id) => setField(id, null));
+
+    const elevGrade = $("elevGrade");
+    if (elevGrade) {
+      elevGrade.textContent = "—";
+      const row = elevGrade.closest(".row");
+      if (row) row.classList.remove("hidden");
+    }
+
+    updateMapsLink(null, null);
+    drawElevationChart();
   }
 
   function updateGeoPermissionUI(state){
     const instruction = $("geoInstruction");
+    const permissionCard = $("geoPermissionCard");
     geoPermissionState = state || null;
-    if (state === "denied") {
+    geoDeniedUI = state === "denied";
+    if (geoDeniedUI) {
       setField("geoStatus", t("geo_status_denied"));
-      setRetryGeoVisible(true);
-      instruction?.classList.remove("hidden");
+      permissionCard?.classList.remove("hidden");
+      instruction?.classList.add("hidden");
+      applyGeoDeniedPlaceholders();
+      stopGeo();
     } else {
       setField("geoStatus", null);
-      setRetryGeoVisible(false);
+      permissionCard?.classList.add("hidden");
       instruction?.classList.add("hidden");
+      if (state === "granted") {
+        startGeo();
+      }
     }
   }
 
@@ -1042,6 +1143,7 @@
   let t0 = null;
   let lastCompassHeading = null;
   let geoPermissionState = null;
+  let geoDeniedUI = false;
   let recordingState = "stopped";
   let recordingStatusKey = "rec_status_stopped";
   let recordPoints = [];
@@ -1203,12 +1305,29 @@
   }
 
   function updateRecordingStats(){
+    if (geoDeniedUI) {
+      setField("recPoints", null);
+      setField("recTime", null);
+      setField("recDistance", null);
+      return;
+    }
     setField("recPoints", String(recordPoints.length));
     setField("recTime", formatElapsed(currentElapsedMs()));
     setField("recDistance", fmt1(recordDistance) ?? "0.0");
   }
 
   function updateElevationStats(){
+    if (geoDeniedUI) {
+      setField("elevGain", null);
+      setField("elevLoss", null);
+      const gradeEl = $("elevGrade");
+      if (gradeEl) {
+        gradeEl.textContent = "—";
+        const row = gradeEl.closest(".row");
+        if (row) row.classList.remove("hidden");
+      }
+      return;
+    }
     setField("elevGain", fmt1(elevationGain) ?? "0.0");
     setField("elevLoss", fmt1(elevationLoss) ?? "0.0");
     const gradeEl = $("elevGrade");
@@ -1459,7 +1578,7 @@
 
   // update age
   setInterval(()=>{
-    if (!lastPos) { setField("updateAge", null); return; }
+    if (geoDeniedUI || !lastPos) { setField("updateAge", null); return; }
     setField("updateAge", fmt1((Date.now() - lastPos.timestamp)/1000));
   }, 200);
 
