@@ -44,6 +44,17 @@
     canvas { width:100%; height:180px; display:block; }
     .hidden { display:none !important; }
     .note { font-size:11px; color:#aeb4c8; margin:4px 12px 0; line-height:1.35; }
+    .map-card .title { margin-bottom:6px; }
+    .map-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 4px 8px; }
+    .map-status { font-size:11px; color:#cbd1e6; }
+    .chip-btn { padding:6px 10px; border-radius:999px; border:1px solid #2a2a45; background:#0f1530; color:#dfe4ff; font-weight:700; font-size:12px; cursor:pointer; }
+    .chip-btn[disabled] { opacity:.6; cursor:not-allowed; }
+    .map-frame { position:relative; width:100%; height:clamp(280px, 45vw, 340px); border-radius:16px; overflow:hidden; border:1px solid #2a2a45; background:#0b1124; }
+    .map-layer { position:absolute; inset:0; }
+    #mapLeaflet { width:100%; height:100%; }
+    .map-hud { position:absolute; right:10px; top:10px; display:flex; flex-direction:column; gap:6px; font-size:11px; background:rgba(5, 10, 20, 0.65); border:1px solid rgba(80, 100, 150, 0.5); padding:6px 8px; border-radius:10px; backdrop-filter:blur(4px); }
+    .map-hud-item { color:#e9e9ef; font-weight:600; }
+    .map-overlay-status { position:absolute; left:10px; bottom:10px; font-size:11px; color:#ffe29b; background:rgba(15, 15, 20, 0.7); border:1px solid rgba(255, 210, 77, 0.4); padding:6px 8px; border-radius:10px; }
   </style>
 </head>
 <body>
@@ -189,6 +200,25 @@
         </div>
         <p class="note" data-i18n="gps_update_note">A taxa de atualização do GPS é controlada pelo sistema operacional e navegador. A Web API não garante atualização fixa (ex.: 1 Hz).</p>
         <p class="note hidden" id="geoInstruction" data-i18n="geo_instruction">Ative a localização nas permissões do navegador.</p>
+      </div>
+
+      <div class="card map-card" data-section="map">
+        <div class="title"><span data-i18n="section_map">Mapa (tempo real)</span></div>
+        <div class="map-toolbar">
+          <div class="map-status" id="mapStatus" data-i18n="map_status_waiting">Aguardando fix...</div>
+          <button class="chip-btn" id="mapFollowBtn" type="button"></button>
+        </div>
+        <div class="map-frame hidden" id="mapFrame">
+          <div id="mapLeaflet" class="map-layer"></div>
+          <canvas id="mapOfflineCanvas" class="map-layer hidden" width="640" height="340"></canvas>
+          <div class="map-hud hidden" id="mapHud">
+            <div class="map-hud-item" id="mapHudSpeed"></div>
+            <div class="map-hud-item" id="mapHudAcc"></div>
+            <div class="map-hud-item" id="mapHudBearing"></div>
+          </div>
+          <div class="map-overlay-status hidden" id="mapOverlayStatus"></div>
+        </div>
+        <p class="note hidden" id="mapPermissionNote" data-i18n="map_permission_denied">Mapa exige permissão de localização</p>
       </div>
 
       <div class="card" data-section="telemetry">
@@ -473,9 +503,19 @@
     pt: {
       start_btn: "Iniciar (pedir permissões)",
       section_gps: "GPS / Fix",
+      section_map: "Mapa (tempo real)",
       section_telemetry: "Telemetria",
       section_gpx_recording: "Gravação",
       section_elevation: "Elevação",
+      map_status_waiting: "Aguardando fix...",
+      map_status_ready: "Mapa pronto",
+      map_status_offline: "Offline: mapa simplificado",
+      map_permission_denied: "Mapa exige permissão de localização",
+      map_follow_on: "Seguir: ligado",
+      map_follow_off: "Seguir: desligado",
+      map_hud_speed: "Velocidade",
+      map_hud_acc: "Acc",
+      map_hud_bearing: "Rumo",
       label_activity_name: "Nome da atividade",
       label_activity_note: "Observação",
       placeholder_activity_name: "Ex: Corrida no parque",
@@ -592,9 +632,19 @@
     en: {
       start_btn: "Start (request permissions)",
       section_gps: "GPS / Fix",
+      section_map: "Map (real time)",
       section_telemetry: "Telemetry",
       section_gpx_recording: "Recording",
       section_elevation: "Elevation",
+      map_status_waiting: "Waiting for fix...",
+      map_status_ready: "Map ready",
+      map_status_offline: "Offline: simplified map",
+      map_permission_denied: "Map requires location permission",
+      map_follow_on: "Follow: on",
+      map_follow_off: "Follow: off",
+      map_hud_speed: "Speed",
+      map_hud_acc: "Acc",
+      map_hud_bearing: "Bearing",
       label_activity_name: "Activity name",
       label_activity_note: "Note",
       placeholder_activity_name: "e.g. Park run",
@@ -711,9 +761,19 @@
     es: {
       start_btn: "Iniciar (pedir permisos)",
       section_gps: "GPS / Fix",
+      section_map: "Mapa (tiempo real)",
       section_telemetry: "Telemetría",
       section_gpx_recording: "Grabación",
       section_elevation: "Elevación",
+      map_status_waiting: "Esperando fix...",
+      map_status_ready: "Mapa listo",
+      map_status_offline: "Sin conexión: mapa simplificado",
+      map_permission_denied: "El mapa requiere permiso de ubicación",
+      map_follow_on: "Seguir: activado",
+      map_follow_off: "Seguir: desactivado",
+      map_hud_speed: "Velocidad",
+      map_hud_acc: "Acc",
+      map_hud_bearing: "Rumbo",
       label_activity_name: "Nombre de la actividad",
       label_activity_note: "Observación",
       placeholder_activity_name: "Ej: Carrera en el parque",
@@ -923,6 +983,14 @@
     if (geoPermissionState) {
       updateGeoPermissionUI(geoPermissionState);
     }
+    if (mapStatusKey) {
+      setMapStatus(mapStatusKey);
+    }
+    setMapOverlayStatus(mapOverlayKey);
+    updateMapFollowButton();
+    if (lastMapHudData) {
+      updateMapHud(lastMapHudData);
+    }
   }
 
   function setField(id, value){
@@ -1017,10 +1085,12 @@
       instruction?.classList.add("hidden");
       applyGeoDeniedPlaceholders();
       stopGeo();
+      setMapPermissionState(true);
     } else {
       setField("geoStatus", null);
       permissionCard?.classList.add("hidden");
       instruction?.classList.add("hidden");
+      setMapPermissionState(false);
       if (state === "granted") {
         startGeo();
       }
@@ -1038,6 +1108,383 @@
       Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
       Math.sin(dLon/2)**2;
     return 2*R*Math.asin(Math.sqrt(a));
+  }
+
+  function ensureLeafletLoaded(){
+    if (window.L) return Promise.resolve();
+    if (leafletPromise) return leafletPromise;
+
+    leafletPromise = new Promise((resolve, reject) => {
+      const existingScript = document.querySelector("script[data-leaflet]");
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve());
+        existingScript.addEventListener("error", () => reject(new Error("Leaflet load failed")));
+        return;
+      }
+
+      if (!document.querySelector("link[data-leaflet]")) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = LEAFLET_CDN.css;
+        link.dataset.leaflet = "true";
+        document.head.appendChild(link);
+      }
+
+      const script = document.createElement("script");
+      script.src = LEAFLET_CDN.js;
+      script.defer = true;
+      script.dataset.leaflet = "true";
+      script.onload = () => resolve();
+      script.onerror = () => {
+        leafletPromise = null;
+        reject(new Error("Leaflet load failed"));
+      };
+      document.head.appendChild(script);
+    });
+
+    return leafletPromise;
+  }
+
+  let mapStatusKey = "map_status_waiting";
+  let mapOverlayKey = null;
+  let lastMapHudData = null;
+
+  function setMapStatus(key){
+    mapStatusKey = key;
+    const el = $("mapStatus");
+    if (el) el.textContent = t(key);
+  }
+
+  function setMapOverlayStatus(key){
+    mapOverlayKey = key;
+    const el = $("mapOverlayStatus");
+    if (!el) return;
+    if (key) {
+      el.textContent = t(key);
+      el.classList.remove("hidden");
+    } else {
+      el.textContent = "";
+      el.classList.add("hidden");
+    }
+  }
+
+  function updateMapFollowButton(){
+    const btn = $("mapFollowBtn");
+    if (!btn) return;
+    const key = mapFollowEnabled ? "map_follow_on" : "map_follow_off";
+    btn.textContent = t(key);
+    btn.setAttribute("aria-pressed", String(mapFollowEnabled));
+    btn.disabled = !mapIsOnline;
+  }
+
+  function setMapPermissionState(denied){
+    mapPermissionDenied = denied;
+    const note = $("mapPermissionNote");
+    const frame = $("mapFrame");
+    if (denied) {
+      note?.classList.remove("hidden");
+      frame?.classList.add("hidden");
+      setMapOverlayStatus(null);
+    } else {
+      note?.classList.add("hidden");
+      if (mapStartRequested) frame?.classList.remove("hidden");
+    }
+  }
+
+  function requestMapStart(){
+    mapStartRequested = true;
+    if (!mapPermissionDenied) {
+      $("mapFrame")?.classList.remove("hidden");
+    }
+    updateMapFollowButton();
+    if (lastPos && !mapHasFix) {
+      updateMapFromPosition(lastPos);
+    }
+  }
+
+  function toLocalMeters(lat, lon){
+    if (!offlineOrigin) return { x: 0, y: 0 };
+    const R = 6371000;
+    const toRad = (x) => x * Math.PI / 180;
+    const lat0 = offlineOrigin.lat;
+    const lon0 = offlineOrigin.lon;
+    const x = (lon - lon0) * Math.cos(toRad(lat0)) * R * (Math.PI / 180);
+    const y = (lat - lat0) * R * (Math.PI / 180);
+    return { x, y };
+  }
+
+  function appendMapTrackPoint(pos){
+    const c = pos.coords;
+    if (typeof c.latitude !== "number" || typeof c.longitude !== "number") return;
+    const lat = c.latitude;
+    const lon = c.longitude;
+
+    if (!mapLastTrackPoint) {
+      mapLastTrackPoint = { lat, lon };
+      mapTrackPoints.push([lat, lon]);
+      offlineOrigin = { lat, lon };
+      mapLocalPoints.push({ x: 0, y: 0 });
+      return;
+    }
+
+    const dist = haversine(mapLastTrackPoint.lat, mapLastTrackPoint.lon, lat, lon);
+    if (dist < MAP_MIN_POINT_DISTANCE) return;
+
+    mapLastTrackPoint = { lat, lon };
+    mapTrackPoints.push([lat, lon]);
+    if (!offlineOrigin) offlineOrigin = { lat, lon };
+    mapLocalPoints.push(toLocalMeters(lat, lon));
+  }
+
+  function initLeafletMap(pos){
+    const c = pos.coords;
+    if (!mapIsOnline) return;
+    if (!window.L) return;
+    const mapEl = $("mapLeaflet");
+    if (!mapEl) return;
+
+    if (!mapInstance) {
+      mapInstance = L.map(mapEl, { zoomControl: true, attributionControl: true });
+      mapInstance.setView([c.latitude, c.longitude], 16);
+    }
+
+    if (!mapTileLayer) {
+      mapTileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap contributors",
+      });
+      mapTileLayer.addTo(mapInstance);
+    }
+
+    if (!mapPath) {
+      mapPath = L.polyline([], { color: "#ffd24d", weight: 3 }).addTo(mapInstance);
+    }
+
+    if (!mapMarker) {
+      mapMarker = L.circleMarker([c.latitude, c.longitude], {
+        radius: 6,
+        color: "#00d2ff",
+        weight: 2,
+        fillColor: "#0094ff",
+        fillOpacity: 0.9,
+      }).addTo(mapInstance);
+    }
+
+    if (mapTrackPoints.length) {
+      mapPath.setLatLngs(mapTrackPoints);
+    }
+
+    mapMarker.setLatLng([c.latitude, c.longitude]);
+    if (mapFollowEnabled) {
+      mapInstance.setView([c.latitude, c.longitude], mapInstance.getZoom() || 16, { animate: false });
+    }
+    mapInstance.invalidateSize();
+    showLeafletView();
+    setMapStatus("map_status_ready");
+  }
+
+  function showLeafletView(){
+    $("mapLeaflet")?.classList.remove("hidden");
+    $("mapOfflineCanvas")?.classList.add("hidden");
+    setMapOverlayStatus(null);
+  }
+
+  function showOfflineView(){
+    $("mapLeaflet")?.classList.add("hidden");
+    $("mapOfflineCanvas")?.classList.remove("hidden");
+    setMapOverlayStatus("map_status_offline");
+    setMapStatus("map_status_offline");
+    mapFollowEnabled = true;
+    updateMapFollowButton();
+  }
+
+  function updateMapHud(pos){
+    const hud = $("mapHud");
+    if (!hud) return;
+    const c = pos.coords;
+    const speed = (c.speed == null || c.speed < 0) ? null : c.speed * 3.6;
+    const acc = (typeof c.accuracy === "number" && isFinite(c.accuracy)) ? c.accuracy : null;
+    const gpsHeading = (c.heading == null || c.heading < 0) ? null : c.heading;
+    const compassHeading = (typeof lastCompassHeading === "number") ? lastCompassHeading : null;
+    const bearing = gpsHeading != null ? gpsHeading : compassHeading;
+
+    const speedEl = $("mapHudSpeed");
+    const accEl = $("mapHudAcc");
+    const bearingEl = $("mapHudBearing");
+
+    if (speedEl) {
+      if (speed == null) {
+        speedEl.classList.add("hidden");
+      } else {
+        speedEl.textContent = `${t("map_hud_speed")}: ${fmt1(speed)} km/h`;
+        speedEl.classList.remove("hidden");
+      }
+    }
+    if (accEl) {
+      if (acc == null) {
+        accEl.classList.add("hidden");
+      } else {
+        accEl.textContent = `${t("map_hud_acc")}: ${fmt1(acc)} m`;
+        accEl.classList.remove("hidden");
+      }
+    }
+    if (bearingEl) {
+      if (bearing == null) {
+        bearingEl.classList.add("hidden");
+      } else {
+        bearingEl.textContent = `${t("map_hud_bearing")}: ${fmt0(bearing)}°`;
+        bearingEl.classList.remove("hidden");
+      }
+    }
+
+    const hasAny = [speedEl, accEl, bearingEl].some((el) => el && !el.classList.contains("hidden"));
+    hud.classList.toggle("hidden", !hasAny);
+    lastMapHudData = pos;
+  }
+
+  function drawOfflineMap(pos){
+    const canvas = $("mapOfflineCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.clientWidth || 640;
+    const height = canvas.clientHeight || 320;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+
+    ctx.fillStyle = "#0b1124";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = "rgba(80, 100, 150, 0.25)";
+    ctx.lineWidth = 1;
+    const gridSize = 28;
+    for (let x = 0; x <= width; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= height; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    if (!mapLocalPoints.length) return;
+    const current = mapLocalPoints[mapLocalPoints.length - 1];
+    let maxDist = 30;
+    mapLocalPoints.forEach((pt) => {
+      const dx = pt.x - current.x;
+      const dy = pt.y - current.y;
+      maxDist = Math.max(maxDist, Math.abs(dx), Math.abs(dy));
+    });
+    const scale = (Math.min(width, height) / 2 - 20) / maxDist;
+
+    ctx.strokeStyle = "#ffd24d";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    mapLocalPoints.forEach((pt, idx) => {
+      const dx = (pt.x - current.x) * scale;
+      const dy = (pt.y - current.y) * scale;
+      const x = width / 2 + dx;
+      const y = height / 2 - dy;
+      if (idx === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = "#00d2ff";
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#0f1530";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  function renderMap(pos){
+    if (!mapStartRequested || mapPermissionDenied || !mapHasFix) return;
+    if (mapIsOnline) {
+      if (mapInstance && mapMarker) {
+        mapMarker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+        if (mapPath) {
+          mapPath.setLatLngs(mapTrackPoints);
+        }
+        if (mapFollowEnabled) {
+          mapInstance.setView([pos.coords.latitude, pos.coords.longitude], mapInstance.getZoom() || 16, { animate: false });
+        }
+      }
+    } else {
+      drawOfflineMap(pos);
+    }
+    updateMapHud(pos);
+  }
+
+  function queueMapRender(pos){
+    if (!pos) return;
+    pendingMapPos = pos;
+    if (mapRenderTimer) return;
+    const now = Date.now();
+    const delay = Math.max(0, MAP_RENDER_INTERVAL - (now - mapLastRenderAt));
+    mapRenderTimer = setTimeout(() => {
+      mapRenderTimer = null;
+      mapLastRenderAt = Date.now();
+      if (pendingMapPos) {
+        renderMap(pendingMapPos);
+        pendingMapPos = null;
+      }
+    }, delay);
+  }
+
+  function updateMapFromPosition(pos){
+    if (!mapStartRequested || mapPermissionDenied) return;
+    if (!mapHasFix) {
+      mapHasFix = true;
+      if (mapIsOnline) {
+        ensureLeafletLoaded()
+          .then(() => {
+            initLeafletMap(pos);
+          })
+          .catch((err) => console.warn("Leaflet load error", err));
+      } else {
+        showOfflineView();
+      }
+      setMapStatus(mapIsOnline ? "map_status_ready" : "map_status_offline");
+    }
+
+    appendMapTrackPoint(pos);
+    queueMapRender(pos);
+  }
+
+  function handleConnectivityChange(isOnline){
+    mapIsOnline = isOnline;
+    if (!mapIsOnline) {
+      if (mapTileLayer && mapInstance) {
+        mapInstance.removeLayer(mapTileLayer);
+        mapTileLayer = null;
+      }
+      if (mapStartRequested && mapHasFix && !mapPermissionDenied) {
+        showOfflineView();
+        queueMapRender(lastPos);
+      }
+    } else if (mapStartRequested && mapHasFix && !mapPermissionDenied) {
+      if (lastPos) {
+        ensureLeafletLoaded()
+          .then(() => {
+            initLeafletMap(lastPos);
+          })
+          .catch((err) => console.warn("Leaflet load error", err));
+      }
+    }
+    updateMapFollowButton();
   }
 
   function formatElapsed(ms){
@@ -1158,6 +1605,30 @@
   let elevationWindow = [];
   let lastElevationPoint = null;
   let lastElevationGrade = null;
+  let mapStartRequested = false;
+  let mapHasFix = false;
+  let mapPermissionDenied = false;
+  let mapFollowEnabled = true;
+  let mapInstance = null;
+  let mapMarker = null;
+  let mapPath = null;
+  let mapTileLayer = null;
+  let mapTrackPoints = [];
+  let mapLocalPoints = [];
+  let mapLastTrackPoint = null;
+  let offlineOrigin = null;
+  let mapRenderTimer = null;
+  let mapLastRenderAt = 0;
+  let pendingMapPos = null;
+  let mapIsOnline = navigator.onLine;
+  let leafletPromise = null;
+
+  const MAP_RENDER_INTERVAL = 200;
+  const MAP_MIN_POINT_DISTANCE = 2.5;
+  const LEAFLET_CDN = {
+    css: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css",
+    js: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
+  };
 
   const STORAGE_KEYS = {
     activityName: "gps-data-activity-name",
@@ -1232,6 +1703,7 @@
     lastPos = pos;
 
     handleRecordingPoint(pos);
+    updateMapFromPosition(pos);
   }
 
   function handleGeoError(err){
@@ -1648,6 +2120,7 @@
   $("startBtn").addEventListener("click", async ()=>{
     await startOrientation();
     await startMotion();
+    requestMapStart();
   });
 
   $("recStartBtn").addEventListener("click", () => {
@@ -1678,6 +2151,15 @@
     initGeoPermissions();
   });
 
+  $("mapFollowBtn")?.addEventListener("click", () => {
+    if (!mapIsOnline) return;
+    mapFollowEnabled = !mapFollowEnabled;
+    updateMapFollowButton();
+    if (mapFollowEnabled && lastPos && mapInstance) {
+      mapInstance.setView([lastPos.coords.latitude, lastPos.coords.longitude], mapInstance.getZoom() || 16, { animate: false });
+    }
+  });
+
   document.querySelectorAll(".lang-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const lang = btn.dataset.lang;
@@ -1704,7 +2186,15 @@
 
   $("activityName")?.addEventListener("input", saveActivityMetadata);
   $("activityNote")?.addEventListener("input", saveActivityMetadata);
-  window.addEventListener("resize", drawElevationChart);
+  window.addEventListener("resize", () => {
+    drawElevationChart();
+    if (mapStartRequested && mapHasFix) {
+      queueMapRender(lastPos);
+    }
+  });
+
+  window.addEventListener("online", () => handleConnectivityChange(true));
+  window.addEventListener("offline", () => handleConnectivityChange(false));
 
   applyTranslations();
   loadActivityMetadata();
@@ -1713,6 +2203,9 @@
   updateElevationStats();
   drawElevationChart();
   initGeoPermissions();
+  updateMapFollowButton();
+  setMapStatus(mapStatusKey);
+  handleConnectivityChange(navigator.onLine);
 
   document.querySelectorAll(".row").forEach((row)=>{
     if (row.hasAttribute("data-keep-visible")) {
