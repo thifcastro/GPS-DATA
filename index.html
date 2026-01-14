@@ -29,6 +29,11 @@
     .desc { font-size:11px; color:#cbd1e6; line-height:1.3; display:none; }
     .desc.open { display:block; }
     .v { color:#ffffff; font-weight:700; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; text-align:right; width:100%; }
+    .field-input,
+    .field-textarea { width:100%; border-radius:12px; border:1px solid #2a2a45; background:#0b1124; color:#e9e9ef; padding:8px 10px; font-size:13px; }
+    .field-textarea { min-height:68px; resize:vertical; }
+    .canvas-wrap { width:100%; background:#0b1124; border-radius:16px; padding:8px; border:1px solid #2a2a45; }
+    canvas { width:100%; height:180px; display:block; }
     .hidden { display:none !important; }
   </style>
 </head>
@@ -209,8 +214,20 @@
       </div>
 
       <div class="card" data-section="gpx">
-        <div class="title"><span data-i18n="section_gpx_recording">Gravação GPX</span></div>
+        <div class="title"><span data-i18n="section_gpx_recording">Gravação</span></div>
         <div class="rows">
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_activity_name">Nome da atividade</span>
+            </div>
+            <input class="field-input" id="activityName" type="text" maxlength="80" data-i18n-placeholder="placeholder_activity_name" />
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_activity_note">Observação</span>
+            </div>
+            <textarea class="field-textarea" id="activityNote" maxlength="200" data-i18n-placeholder="placeholder_activity_note"></textarea>
+          </div>
           <div class="row">
             <div class="k">
               <span class="label" data-i18n="label_rec_status">Status</span>
@@ -242,6 +259,38 @@
               <button class="btn" id="recResumeBtn" type="button" data-i18n="btn_rec_resume">Retomar</button>
               <button class="btn" id="recStopBtn" type="button" data-i18n="btn_rec_stop">Parar e Baixar GPX</button>
               <button class="btn" id="recResetBtn" type="button" data-i18n="btn_rec_reset">Reset</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-section="elevation">
+        <div class="title"><span data-i18n="section_elevation">Elevação</span></div>
+        <div class="rows">
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_gain">Ganho acumulado (m)</span>
+            </div>
+            <div class="v" id="elevGain">0.0</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_loss">Perda acumulada (m)</span>
+            </div>
+            <div class="v" id="elevLoss">0.0</div>
+          </div>
+          <div class="row" data-keep-visible>
+            <div class="k">
+              <span class="label" data-i18n="label_grade">Inclinação último trecho (%)</span>
+            </div>
+            <div class="v" id="elevGrade">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_profile">Perfil altimétrico</span>
+            </div>
+            <div class="canvas-wrap">
+              <canvas id="elevChart" width="600" height="180"></canvas>
             </div>
           </div>
         </div>
@@ -369,7 +418,16 @@
       start_btn: "Iniciar (pedir permissões)",
       section_gps: "GPS / Fix",
       section_telemetry: "Telemetria",
-      section_gpx_recording: "Gravação GPX",
+      section_gpx_recording: "Gravação",
+      section_elevation: "Elevação",
+      label_activity_name: "Nome da atividade",
+      label_activity_note: "Observação",
+      placeholder_activity_name: "Ex: Corrida no parque",
+      placeholder_activity_note: "Ex: Subidas fortes na metade final.",
+      label_gain: "Ganho acumulado (m)",
+      label_loss: "Perda acumulada (m)",
+      label_grade: "Inclinação último trecho (%)",
+      label_profile: "Perfil altimétrico",
       section_orientation: "Orientação",
       section_motion: "Movimento",
       label_lat: "Latitude",
@@ -463,7 +521,16 @@
       start_btn: "Start (request permissions)",
       section_gps: "GPS / Fix",
       section_telemetry: "Telemetry",
-      section_gpx_recording: "GPX Recording",
+      section_gpx_recording: "Recording",
+      section_elevation: "Elevation",
+      label_activity_name: "Activity name",
+      label_activity_note: "Note",
+      placeholder_activity_name: "e.g. Park run",
+      placeholder_activity_note: "e.g. Tough climb halfway.",
+      label_gain: "Total gain (m)",
+      label_loss: "Total loss (m)",
+      label_grade: "Last segment grade (%)",
+      label_profile: "Elevation profile",
       section_orientation: "Orientation",
       section_motion: "Motion",
       label_lat: "Latitude",
@@ -557,7 +624,16 @@
       start_btn: "Iniciar (pedir permisos)",
       section_gps: "GPS / Fix",
       section_telemetry: "Telemetría",
-      section_gpx_recording: "Grabación GPX",
+      section_gpx_recording: "Grabación",
+      section_elevation: "Elevación",
+      label_activity_name: "Nombre de la actividad",
+      label_activity_note: "Observación",
+      placeholder_activity_name: "Ej: Carrera en el parque",
+      placeholder_activity_note: "Ej: Subidas fuertes a mitad.",
+      label_gain: "Ganancia acumulada (m)",
+      label_loss: "Pérdida acumulada (m)",
+      label_grade: "Pendiente último tramo (%)",
+      label_profile: "Perfil altimétrico",
       section_orientation: "Orientación",
       section_motion: "Movimiento",
       label_lat: "Latitud",
@@ -663,6 +739,11 @@
       const text = t(key);
       if (text) el.textContent = text;
     });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const key = el.dataset.i18nPlaceholder;
+      const text = t(key);
+      if (text) el.setAttribute("placeholder", text);
+    });
 
     document.querySelectorAll(".info-btn").forEach((btn) => {
       const label = t("info_label");
@@ -759,13 +840,21 @@
   }
 
   function buildGpx(points){
+    const nameValue = $("activityName")?.value?.trim();
+    const noteValue = $("activityNote")?.value?.trim();
     const lines = [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<gpx version="1.1" creator="GPS-DATA" xmlns="http://www.topografix.com/GPX/1/1">',
       '  <trk>',
-      '    <name>GPS-DATA Track</name>',
-      '    <trkseg>',
+      `    <name>${escapeXml(nameValue || "GPS-DATA Track")}</name>`,
     ];
+    if (noteValue) {
+      lines.push(`    <desc>${escapeXml(noteValue)}</desc>`);
+      lines.push(`    <cmt>${escapeXml(noteValue)}</cmt>`);
+    }
+    lines.push(
+      '    <trkseg>',
+    );
     points.forEach((pt) => {
       const lat = Number(pt.lat).toFixed(6);
       const lon = Number(pt.lon).toFixed(6);
@@ -805,6 +894,30 @@
     });
   }
 
+  function loadActivityMetadata(){
+    const nameInput = $("activityName");
+    const noteInput = $("activityNote");
+    if (nameInput) {
+      const savedName = localStorage.getItem(STORAGE_KEYS.activityName);
+      if (savedName != null) nameInput.value = savedName;
+    }
+    if (noteInput) {
+      const savedNote = localStorage.getItem(STORAGE_KEYS.activityNote);
+      if (savedNote != null) noteInput.value = savedNote;
+    }
+  }
+
+  function saveActivityMetadata(){
+    const nameInput = $("activityName");
+    const noteInput = $("activityNote");
+    if (nameInput) {
+      localStorage.setItem(STORAGE_KEYS.activityName, nameInput.value.trim());
+    }
+    if (noteInput) {
+      localStorage.setItem(STORAGE_KEYS.activityNote, noteInput.value.trim());
+    }
+  }
+
   // ---------- GEO ----------
   let watchId = null;
   let lastPos = null;
@@ -819,6 +932,18 @@
   let recordStartTime = null;
   let recordElapsed = 0;
   let lastRecordedPoint = null;
+  let elevationPoints = [];
+  let elevationDistance = 0;
+  let elevationGain = 0;
+  let elevationLoss = 0;
+  let elevationWindow = [];
+  let lastElevationPoint = null;
+  let lastElevationGrade = null;
+
+  const STORAGE_KEYS = {
+    activityName: "gps-data-activity-name",
+    activityNote: "gps-data-activity-note",
+  };
 
   function handlePosition(pos){
     const c = pos.coords;
@@ -927,6 +1052,18 @@
     setField("recDistance", fmt1(recordDistance) ?? "0.0");
   }
 
+  function updateElevationStats(){
+    setField("elevGain", fmt1(elevationGain) ?? "0.0");
+    setField("elevLoss", fmt1(elevationLoss) ?? "0.0");
+    const gradeEl = $("elevGrade");
+    if (gradeEl) {
+      gradeEl.textContent = lastElevationGrade == null ? "—" : fmt1(lastElevationGrade);
+      const row = gradeEl.closest(".row");
+      if (row) row.classList.remove("hidden");
+      updateSectionVisibility(row ? row.closest(".card") : null);
+    }
+  }
+
   function setRecordingStatus(key){
     if (!key) return;
     recordingStatusKey = key;
@@ -954,7 +1091,16 @@
     recordStartTime = null;
     recordElapsed = 0;
     lastRecordedPoint = null;
+    elevationPoints = [];
+    elevationDistance = 0;
+    elevationGain = 0;
+    elevationLoss = 0;
+    elevationWindow = [];
+    lastElevationPoint = null;
+    lastElevationGrade = null;
     updateRecordingStats();
+    updateElevationStats();
+    drawElevationChart();
   }
 
   function handleRecordingPoint(pos){
@@ -989,6 +1135,113 @@
     lastRecordedPoint = point;
     recordPoints.push(point);
     updateRecordingStats();
+    updateElevationFromPoint(pos);
+  }
+
+  function updateElevationFromPoint(pos){
+    const c = pos.coords;
+    if (typeof c.altitude !== "number" || !isFinite(c.altitude)) return;
+    const hasAccuracy = typeof c.accuracy === "number" && isFinite(c.accuracy);
+    if (!hasAccuracy || c.accuracy > 50) return;
+    if (typeof c.latitude !== "number" || typeof c.longitude !== "number") return;
+
+    const rawAlt = c.altitude;
+    elevationWindow.push(rawAlt);
+    if (elevationWindow.length > 5) elevationWindow.shift();
+    const smoothAlt = elevationWindow.reduce((sum, val) => sum + val, 0) / elevationWindow.length;
+
+    if (!lastElevationPoint) {
+      lastElevationPoint = { lat: c.latitude, lon: c.longitude, alt: smoothAlt };
+      elevationPoints.push({ d: 0, alt: smoothAlt });
+      updateElevationStats();
+      drawElevationChart();
+      return;
+    }
+
+    const segmentDistance = haversine(
+      lastElevationPoint.lat,
+      lastElevationPoint.lon,
+      c.latitude,
+      c.longitude
+    );
+    if (segmentDistance < 3) return;
+
+    elevationDistance += segmentDistance;
+    const deltaAlt = smoothAlt - lastElevationPoint.alt;
+    if (deltaAlt > 0) {
+      elevationGain += deltaAlt;
+    } else if (deltaAlt < 0) {
+      elevationLoss += Math.abs(deltaAlt);
+    }
+    lastElevationGrade = (segmentDistance > 0) ? (deltaAlt / segmentDistance) * 100 : null;
+    lastElevationPoint = { lat: c.latitude, lon: c.longitude, alt: smoothAlt };
+    elevationPoints.push({ d: elevationDistance, alt: smoothAlt });
+    updateElevationStats();
+    drawElevationChart();
+  }
+
+  function drawElevationChart(){
+    const canvas = $("elevChart");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.clientWidth || 600;
+    const height = canvas.clientHeight || 180;
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "#0b1124";
+    ctx.fillRect(0, 0, width, height);
+
+    if (!elevationPoints.length) {
+      ctx.fillStyle = "#aeb4c8";
+      ctx.font = "12px -apple-system, system-ui, Segoe UI, Arial";
+      ctx.fillText(t("label_profile"), 10, 20);
+      return;
+    }
+
+    const padding = { top: 10, right: 10, bottom: 24, left: 36 };
+    const plotW = width - padding.left - padding.right;
+    const plotH = height - padding.top - padding.bottom;
+
+    const altitudes = elevationPoints.map((p) => p.alt);
+    const minAlt = Math.min(...altitudes);
+    const maxAlt = Math.max(...altitudes);
+    const altRange = Math.max(1, maxAlt - minAlt);
+    const maxDist = Math.max(1, elevationPoints[elevationPoints.length - 1].d);
+
+    ctx.strokeStyle = "#1f2b52";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, padding.top);
+    ctx.lineTo(padding.left, height - padding.bottom);
+    ctx.lineTo(width - padding.right, height - padding.bottom);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#4b5aa8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    elevationPoints.forEach((p, idx) => {
+      const x = padding.left + (p.d / maxDist) * plotW;
+      const y = padding.top + (1 - (p.alt - minAlt) / altRange) * plotH;
+      if (idx === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = "#cbd1e6";
+    ctx.font = "11px -apple-system, system-ui, Segoe UI, Arial";
+    ctx.fillText(`${minAlt.toFixed(0)}m`, padding.left, height - 6);
+    ctx.fillText(`${maxAlt.toFixed(0)}m`, padding.left, padding.top + 12);
+    ctx.fillText(`${maxDist.toFixed(0)}m`, width - padding.right - 40, height - 6);
   }
 
   function startRecording(){
@@ -1169,11 +1422,22 @@
     });
   });
 
+  $("activityName")?.addEventListener("input", saveActivityMetadata);
+  $("activityNote")?.addEventListener("input", saveActivityMetadata);
+  window.addEventListener("resize", drawElevationChart);
+
   applyTranslations();
+  loadActivityMetadata();
   updateRecordingControls();
   updateRecordingStats();
+  updateElevationStats();
+  drawElevationChart();
 
   document.querySelectorAll(".row").forEach((row)=>{
+    if (row.hasAttribute("data-keep-visible")) {
+      updateSectionVisibility(row.closest(".card"));
+      return;
+    }
     const value = row.querySelector(".v");
     if (value) {
       const text = value.textContent;
