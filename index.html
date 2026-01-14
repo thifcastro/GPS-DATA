@@ -35,6 +35,7 @@
     .canvas-wrap { width:100%; background:#0b1124; border-radius:16px; padding:8px; border:1px solid #2a2a45; }
     canvas { width:100%; height:180px; display:block; }
     .hidden { display:none !important; }
+    .note { font-size:11px; color:#aeb4c8; margin:4px 12px 0; line-height:1.35; }
   </style>
 </head>
 <body>
@@ -62,11 +63,29 @@
           </div>
           <div class="row">
             <div class="k">
+              <span class="label" data-i18n="label_lat_dms">Lat (DMS)</span>
+            </div>
+            <div class="v" id="latDms">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
               <span class="label" data-i18n="label_lon">Longitude</span>
               <button class="info-btn" type="button" data-info-for="lon">ℹ️</button>
             </div>
             <div class="desc" data-i18n="desc_lon"></div>
             <div class="v" id="lon">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_lon_dms">Lon (DMS)</span>
+            </div>
+            <div class="v" id="lonDms">—</div>
+          </div>
+          <div class="row">
+            <div class="k">
+              <span class="label" data-i18n="label_geo_status">Status GPS</span>
+            </div>
+            <div class="v" id="geoStatus">—</div>
           </div>
           <div class="row">
             <div class="k">
@@ -132,7 +151,19 @@
             <div class="desc" data-i18n="desc_ts"></div>
             <div class="v" id="ts">—</div>
           </div>
+          <div class="row actions hidden" id="mapsRow">
+            <div class="btn-group">
+              <a class="btn" id="mapsLink" target="_blank" rel="noopener" data-i18n="btn_maps">Abrir no Google Maps</a>
+            </div>
+          </div>
+          <div class="row actions hidden" id="retryGeoRow">
+            <div class="btn-group">
+              <button class="btn" id="retryGeoBtn" type="button" data-i18n="btn_retry_geo">Tentar novamente</button>
+            </div>
+          </div>
         </div>
+        <p class="note" data-i18n="gps_update_note">A taxa de atualização do GPS é controlada pelo sistema operacional e navegador. A Web API não garante atualização fixa (ex.: 1 Hz).</p>
+        <p class="note hidden" id="geoInstruction" data-i18n="geo_instruction">Ative a localização nas permissões do navegador.</p>
       </div>
 
       <div class="card" data-section="telemetry">
@@ -431,7 +462,10 @@
       section_orientation: "Orientação",
       section_motion: "Movimento",
       label_lat: "Latitude",
+      label_lat_dms: "Lat (DMS)",
       label_lon: "Longitude",
+      label_lon_dms: "Lon (DMS)",
+      label_geo_status: "Status GPS",
       label_alt: "Altitude (m)",
       label_hacc: "Acc H (m)",
       label_vacc: "AltAcc (m)",
@@ -501,6 +535,11 @@
       btn_rec_resume: "Retomar",
       btn_rec_stop: "Parar e Baixar GPX",
       btn_rec_reset: "Reset",
+      btn_maps: "Abrir no Google Maps",
+      btn_retry_geo: "Tentar novamente",
+      gps_update_note: "A taxa de atualização do GPS é controlada pelo sistema operacional e navegador. A Web API não garante atualização fixa (ex.: 1 Hz).",
+      geo_instruction: "Ative a localização nas permissões do navegador.",
+      geo_status_denied: "Permissão de localização negada",
       rec_status_recording: "Gravando",
       rec_status_paused: "Pausado",
       rec_status_stopped: "Parado",
@@ -534,7 +573,10 @@
       section_orientation: "Orientation",
       section_motion: "Motion",
       label_lat: "Latitude",
+      label_lat_dms: "Lat (DMS)",
       label_lon: "Longitude",
+      label_lon_dms: "Lon (DMS)",
+      label_geo_status: "GPS status",
       label_alt: "Altitude (m)",
       label_hacc: "H Acc (m)",
       label_vacc: "Alt Acc (m)",
@@ -604,6 +646,11 @@
       btn_rec_resume: "Resume",
       btn_rec_stop: "Stop & Download GPX",
       btn_rec_reset: "Reset",
+      btn_maps: "Open in Google Maps",
+      btn_retry_geo: "Try again",
+      gps_update_note: "The GPS update rate is controlled by the operating system and browser. The Web API does not guarantee a fixed update rate (e.g., 1 Hz).",
+      geo_instruction: "Enable location access in your browser permissions.",
+      geo_status_denied: "Location permission denied",
       rec_status_recording: "Recording",
       rec_status_paused: "Paused",
       rec_status_stopped: "Stopped",
@@ -637,7 +684,10 @@
       section_orientation: "Orientación",
       section_motion: "Movimiento",
       label_lat: "Latitud",
+      label_lat_dms: "Lat (DMS)",
       label_lon: "Longitud",
+      label_lon_dms: "Lon (DMS)",
+      label_geo_status: "Estado GPS",
       label_alt: "Altitud (m)",
       label_hacc: "Acc H (m)",
       label_vacc: "Acc Alt (m)",
@@ -707,6 +757,11 @@
       btn_rec_resume: "Reanudar",
       btn_rec_stop: "Detener y bajar GPX",
       btn_rec_reset: "Reset",
+      btn_maps: "Abrir en Google Maps",
+      btn_retry_geo: "Intentar de nuevo",
+      gps_update_note: "La tasa de actualización del GPS la controla el sistema operativo y el navegador. La Web API no garantiza una tasa fija (ej.: 1 Hz).",
+      geo_instruction: "Active la ubicación en los permisos del navegador.",
+      geo_status_denied: "Permiso de ubicación denegado",
       rec_status_recording: "Grabando",
       rec_status_paused: "Pausado",
       rec_status_stopped: "Detenido",
@@ -769,6 +824,28 @@
     return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   }
 
+  function formatDms(value, isLat){
+    if (typeof value !== "number" || !isFinite(value)) return null;
+    const dir = value >= 0 ? (isLat ? "N" : "E") : (isLat ? "S" : "W");
+    const abs = Math.abs(value);
+    const totalSeconds = abs * 3600;
+    let degrees = Math.floor(totalSeconds / 3600);
+    let minutes = Math.floor((totalSeconds - degrees * 3600) / 60);
+    let seconds = totalSeconds - degrees * 3600 - minutes * 60;
+    seconds = Number(seconds.toFixed(1));
+    if (seconds >= 60) {
+      seconds = 0;
+      minutes += 1;
+    }
+    if (minutes >= 60) {
+      minutes = 0;
+      degrees += 1;
+    }
+    const minutesText = String(minutes).padStart(2, "0");
+    const secondsText = seconds.toFixed(1).padStart(4, "0");
+    return `${degrees}° ${minutesText}' ${secondsText}" ${dir}`;
+  }
+
   function signalQualityFromAccuracy(acc){
     if (typeof acc !== "number" || !isFinite(acc)) return null;
     if (acc <= 10) return t("sig_excellent");
@@ -794,6 +871,9 @@
     setField("bearingSrc", bearingSource);
     const ts = new Date(lastPos.timestamp);
     setField("ts", ts.toLocaleTimeString(localeMap[currentLang] || "pt-BR"));
+    if (geoPermissionState) {
+      updateGeoPermissionUI(geoPermissionState);
+    }
   }
 
   function setField(id, value){
@@ -808,6 +888,42 @@
       if (row) row.classList.remove("hidden");
     }
     updateSectionVisibility(row ? row.closest(".card") : null);
+  }
+
+  function updateMapsLink(lat, lon){
+    const row = $("mapsRow");
+    const link = $("mapsLink");
+    if (!row || !link) return;
+    const valid = typeof lat === "number" && isFinite(lat) && typeof lon === "number" && isFinite(lon);
+    if (valid) {
+      link.href = `https://www.google.com/maps?q=${lat},${lon}`;
+      row.classList.remove("hidden");
+    } else {
+      link.removeAttribute("href");
+      row.classList.add("hidden");
+    }
+    updateSectionVisibility(row.closest(".card"));
+  }
+
+  function setRetryGeoVisible(visible){
+    const row = $("retryGeoRow");
+    if (!row) return;
+    row.classList.toggle("hidden", !visible);
+    updateSectionVisibility(row.closest(".card"));
+  }
+
+  function updateGeoPermissionUI(state){
+    const instruction = $("geoInstruction");
+    geoPermissionState = state || null;
+    if (state === "denied") {
+      setField("geoStatus", t("geo_status_denied"));
+      setRetryGeoVisible(true);
+      instruction?.classList.remove("hidden");
+    } else {
+      setField("geoStatus", null);
+      setRetryGeoVisible(false);
+      instruction?.classList.add("hidden");
+    }
   }
 
   // Haversine distance in meters
@@ -925,6 +1041,7 @@
   let vmax = 0;
   let t0 = null;
   let lastCompassHeading = null;
+  let geoPermissionState = null;
   let recordingState = "stopped";
   let recordingStatusKey = "rec_status_stopped";
   let recordPoints = [];
@@ -949,11 +1066,15 @@
     const c = pos.coords;
 
     setField("lat", fmt(c.latitude, 6));
+    setField("latDms", formatDms(c.latitude, true));
     setField("lon", fmt(c.longitude, 6));
+    setField("lonDms", formatDms(c.longitude, false));
     setField("alt", fmt1(c.altitude));
     setField("hacc", fmt0(c.accuracy));
     setField("vacc", fmt0(c.altitudeAccuracy));
     setField("sigQ", signalQualityFromAccuracy(c.accuracy));
+    updateMapsLink(c.latitude, c.longitude);
+    updateGeoPermissionUI("granted");
 
     const spd = (c.speed == null || c.speed < 0) ? null : c.speed * 3.6;
     setField("spd", spd == null ? null : fmt1(spd));
@@ -1016,12 +1137,28 @@
     if (!err || typeof err.code !== "number") return;
     if (err.code === 1) {
       setRecordingStatus("rec_status_error_perm");
+      updateGeoPermissionUI("denied");
     } else if (err.code === 2) {
       setRecordingStatus("rec_status_error_unavailable");
     } else if (err.code === 3) {
       setRecordingStatus("rec_status_error_timeout");
     }
     stopRecording(true);
+  }
+
+  async function initGeoPermissions(){
+    if (!navigator.permissions || !navigator.permissions.query) return;
+    try {
+      const status = await navigator.permissions.query({ name: "geolocation" });
+      geoPermissionState = status.state;
+      updateGeoPermissionUI(status.state);
+      status.onchange = () => {
+        geoPermissionState = status.state;
+        updateGeoPermissionUI(status.state);
+      };
+    } catch (e) {
+      console.warn("Permissions query error", e);
+    }
   }
 
   function startGeo(){
@@ -1037,6 +1174,25 @@
       navigator.geolocation.clearWatch(watchId);
       watchId = null;
     }
+  }
+
+  function retryGeolocation(){
+    if (!navigator.geolocation) {
+      setRecordingStatus("rec_status_error_no_geo");
+      return;
+    }
+    stopGeo();
+    const opts = { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 };
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        handlePosition(pos);
+        startGeo();
+      },
+      (err) => {
+        handleGeoError(err);
+      },
+      opts
+    );
   }
 
   function currentElapsedMs(){
@@ -1398,6 +1554,11 @@
     updateRecordingControls();
   });
 
+  $("retryGeoBtn")?.addEventListener("click", () => {
+    retryGeolocation();
+    initGeoPermissions();
+  });
+
   document.querySelectorAll(".lang-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const lang = btn.dataset.lang;
@@ -1432,6 +1593,7 @@
   updateRecordingStats();
   updateElevationStats();
   drawElevationChart();
+  initGeoPermissions();
 
   document.querySelectorAll(".row").forEach((row)=>{
     if (row.hasAttribute("data-keep-visible")) {
